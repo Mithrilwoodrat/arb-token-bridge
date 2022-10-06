@@ -121,6 +121,19 @@ function getProviderName(provider: any): ProviderName | null {
   return null
 }
 
+const getL1NetworkWrapper = async (signerOrProviderOrChainID: any) => {
+  if (typeof signerOrProviderOrChainID === 'number' && signerOrProviderOrChainID == 10001) {
+    return getL1Network(1);
+  }
+  if (typeof signerOrProviderOrChainID === 'object') {
+    const providerChainId = (await signerOrProviderOrChainID.getNetwork()).chainId;
+    if (providerChainId == 10001) {
+      return getL1Network(1);
+    }
+  }
+  return getL1Network(signerOrProviderOrChainID);
+}
+
 export function NetworksAndSignersProvider(
   props: NetworksAndSignersProviderProps
 ): JSX.Element {
@@ -163,7 +176,7 @@ export function NetworksAndSignersProvider(
   const update = useCallback(
     async (web3Provider: Web3Provider, address: string) => {
       const providerChainId = (await web3Provider.getNetwork()).chainId
-
+      console.log(providerChainId);
       // If provider is not supported, display warning message
       if (!(providerChainId in chainIdToDefaultL2ChainId)) {
         console.error(`Provider chainId not supported: ${providerChainId}`)
@@ -178,9 +191,11 @@ export function NetworksAndSignersProvider(
        */
       let _selectedL2ChainId = selectedL2ChainId
       const providerSupportedL2 = chainIdToDefaultL2ChainId[providerChainId]
-
+      
+      console.log('providerSupportedL2: ', providerSupportedL2);
       // Case 1: use a default L2 based on the connected provider chainid
       _selectedL2ChainId = _selectedL2ChainId || providerSupportedL2[0]
+      console.log('_selectedL2ChainId: ', _selectedL2ChainId);
       if (typeof _selectedL2ChainId === 'undefined') {
         console.error(`Unknown provider chainId: ${providerChainId}`)
         setResult({ status: UseNetworksAndSignersStatus.NOT_SUPPORTED })
@@ -198,8 +213,9 @@ export function NetworksAndSignersProvider(
       }
 
       // Case 3
-      getL1Network(web3Provider)
+      getL1NetworkWrapper(web3Provider)
         .then(async l1Network => {
+          console.log("l1Network: ", l1Network);
           // Web3Provider is connected to an L1 network. We instantiate a provider for the L2 network.
           const l2Provider = new StaticJsonRpcProvider(
             rpcURLs[_selectedL2ChainId!]
@@ -227,7 +243,8 @@ export function NetworksAndSignersProvider(
             isConnectedToArbitrum: false
           })
         })
-        .catch(() => {
+        .catch((err) => {
+          console.error(err)
           // Web3Provider is connected to an L2 network. We instantiate a provider for the L1 network.
           if (providerChainId !== _selectedL2ChainId) {
             // Make sure the L2 provider chainid match the selected chainid

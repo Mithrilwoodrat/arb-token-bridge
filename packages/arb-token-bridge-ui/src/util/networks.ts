@@ -8,6 +8,7 @@ if (!INFURA_KEY) {
 
 export enum ChainId {
   Mainnet = 1,
+  ETHW = 10001,
   Rinkeby = 4,
   Goerli = 5,
   ArbitrumOne = 42161,
@@ -59,6 +60,7 @@ export const chainIdToDefaultL2ChainId: { [chainId: number]: ChainId[] } = {
   [ChainId.ArbitrumRinkeby]: [ChainId.ArbitrumRinkeby],
   [ChainId.Goerli]: [ChainId.ArbitrumGoerli],
   [ChainId.Mainnet]: [ChainId.ArbitrumOne, ChainId.ArbitrumNova],
+  [ChainId.ETHW]: [ChainId.ArbitrumOne, ChainId.ArbitrumNova],
   [ChainId.Rinkeby]: [ChainId.ArbitrumRinkeby]
 }
 
